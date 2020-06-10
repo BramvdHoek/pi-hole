@@ -1,6 +1,6 @@
-import subprocess, commands, requests 
-from inky import InkyPHAT 
-from PIL import Image, ImageFont, ImageDraw 
+import subprocess, commands, requests
+from inky import InkyPHAT
+from PIL import Image, ImageFont, ImageDraw
 from font_source_sans_pro import SourceSansPro, SourceSansProBold
 
 inky_display = InkyPHAT(colour="black")
@@ -22,7 +22,7 @@ host = subprocess.check_output("hostname", shell=True).strip() + ".local"
 ip = subprocess.check_output( "hostname -I | cut -d' ' -f1", shell=True).strip()
 mem_usage = subprocess.check_output("free -m | awk 'NR==2{printf \"%s/%sMB %.0f%%\", $3,$2,$3*100/$2 }'", shell=True).strip()
 disk = subprocess.check_output("df -h | awk '$NF==\"/\"{printf \"%d/%dGB %s\", $3,$2,$5}'", shell=True).strip()
-temp = commands.getstatusoutput("vcgencmd measure_temp")[1].replace("temp=", "").replace("'", "\xb0") 
+temp = commands.getstatusoutput("vcgencmd measure_temp")[1].replace("temp=", "").replace("'", "\xb0")
 
 # Dimensions of stats text
 w_host, h_host = font.getsize(host)
@@ -49,15 +49,15 @@ mask_draw.text((max_width-w_temp, h_line*4), temp, 1, font)
 mask_draw.line([(0, h_line*5+2), (max_width, h_line*5+2)], fill=color, width=2)
 #Pi-hole stats
 
-rawdata = requests.get("http://192.168.254.210/admin/api.php?summary").json()
+rawdata = requests.get("http://192.168.1.4/admin/api.php?summary").json()
 clients = rawdata["unique_clients"]
 dns_queries = rawdata["dns_queries_all_types"]
 queries_blocked = rawdata["ads_blocked_today"]
-print(percent_blocked, type(percent_blocked))
-percent_blocked = float(percent_blocked)
-percent_blocked = int(percent_blocked)
-print(percent_blocked, type(percent_blocked))
-blocked = queries_blocked + "  " + str(percent_blocked) + "%"
+#print(percent_blocked, type(percent_blocked))
+#percent_blocked = float(percent_blocked)
+#percent_blocked = int(percent_blocked)
+#print(percent_blocked, type(percent_blocked))
+#blocked = queries_blocked + "  " + str(percent_blocked) + "%"
 #print("rawdata")
 #print(rawdata)
 
@@ -65,7 +65,7 @@ stats_title = "Daily Pi-Hole Stats"
 w_title, h_title = font.getsize(stats_title)
 w_clients, h_clients = font.getsize(clients)
 w_queries, h_queries = font.getsize(dns_queries)
-w_blocked, h_blocked = font.getsize(blocked)
+#w_blocked, h_blocked = font.getsize(blocked)
 start_h = h_line*5+4
 
 mask_draw.text(((max_width-w_title)/2, start_h), stats_title, 1, font_bold)
@@ -73,12 +73,12 @@ mask_draw.text((0, start_h+h_line), "Clients: ", 1, font_bold)
 mask_draw.text((max_width-w_clients, start_h+15), clients, 1, font)
 mask_draw.text((0, start_h+h_line*2), "Queries: ", 1, font_bold)
 mask_draw.text((max_width-w_queries, start_h+h_line*2), dns_queries, 1, font)
-mask_draw.text((0, start_h+h_line*3), "Blocked: ", 1, font_bold)
-mask_draw.text((max_width-w_blocked, start_h+h_line*3), blocked, 1, font)
+#mask_draw.text((0, start_h+h_line*3), "Blocked: ", 1, font_bold)
+#mask_draw.text((max_width-w_blocked, start_h+h_line*3), blocked, 1, font)
 
 
-graph_data = requests.get("http://192.168.254.210/admin/api.php?overTimeData10min").json()
-print("graph_data: ", graph_data)
+graph_data = requests.get("http://192.168.1.4/admin/api.php?overTimeData10min").json()
+#print("graph_data: ", graph_data)
 
 graph_start = start_h+h_line*4+2
 
