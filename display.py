@@ -3,6 +3,13 @@ from inky import InkyPHAT
 from PIL import Image, ImageFont, ImageDraw
 from font_source_sans_pro import SourceSansPro, SourceSansProBold
 
+#----------------------------- Settings change me -----------------------------#
+
+#ipadress of the pihole server
+pihole_ip = "192.168.1.4"
+
+
+#------------------------------------------------------------------------------#
 inky_display = InkyPHAT(colour="black")
 inky_display.set_border(inky_display.WHITE)
 img = Image.new("P", (inky_display.WIDTH, inky_display.HEIGHT))
@@ -49,7 +56,7 @@ mask_draw.text((max_width-w_temp, h_line*4), temp, 1, font)
 mask_draw.line([(0, h_line*5+2), (max_width, h_line*5+2)], fill=color, width=2)
 #Pi-hole stats
 
-rawdata = requests.get("http://192.168.1.4/admin/api.php?summary").json()
+rawdata = requests.get("http://" + pihole_ip + "/admin/api.php?summary").json()
 clients = rawdata["unique_clients"]
 dns_queries = rawdata["dns_queries_all_types"]
 queries_blocked = rawdata["ads_blocked_today"]
@@ -77,7 +84,7 @@ mask_draw.text((max_width-w_queries, start_h+h_line*2), dns_queries, 1, font)
 #mask_draw.text((max_width-w_blocked, start_h+h_line*3), blocked, 1, font)
 
 
-graph_data = requests.get("http://192.168.1.4/admin/api.php?overTimeData10min").json()
+graph_data = requests.get("http://" + pihole_ip + "/admin/api.php?overTimeData10min").json()
 #print("graph_data: ", graph_data)
 
 graph_start = start_h+h_line*4+2
