@@ -8,7 +8,6 @@ from font_source_sans_pro import SourceSansPro, SourceSansProBold
 #ipadress of the pihole server
 pihole_ip = "192.168.1.4"
 
-
 #------------------------------------------------------------------------------#
 inky_display = InkyPHAT(colour="black")
 inky_display.set_border(inky_display.WHITE)
@@ -54,25 +53,19 @@ mask_draw.text((max_width-w_disk, h_line*3), disk, 1, font)
 mask_draw.text((0, h_line*4), "Temp: ", 1, font_bold)
 mask_draw.text((max_width-w_temp, h_line*4), temp, 1, font)
 mask_draw.line([(0, h_line*5+2), (max_width, h_line*5+2)], fill=color, width=2)
-#Pi-hole stats
 
+#Pi-hole stats
 rawdata = requests.get("http://" + pihole_ip + "/admin/api.php?summary").json()
 clients = rawdata["unique_clients"]
 dns_queries = rawdata["dns_queries_all_types"]
-queries_blocked = rawdata["ads_blocked_today"]
-#print(percent_blocked, type(percent_blocked))
-#percent_blocked = float(percent_blocked)
-#percent_blocked = int(percent_blocked)
-#print(percent_blocked, type(percent_blocked))
-#blocked = queries_blocked + "  " + str(percent_blocked) + "%"
-#print("rawdata")
-#print(rawdata)
+ads_percentage = rawdata["ads_percentage_today"]
+blocked = ads_percentage + " %"
 
 stats_title = "Daily Pi-Hole Stats"
 w_title, h_title = font.getsize(stats_title)
 w_clients, h_clients = font.getsize(clients)
 w_queries, h_queries = font.getsize(dns_queries)
-#w_blocked, h_blocked = font.getsize(blocked)
+w_blocked, h_blocked = font.getsize(blocked)
 start_h = h_line*5+4
 
 mask_draw.text(((max_width-w_title)/2, start_h), stats_title, 1, font_bold)
@@ -80,8 +73,8 @@ mask_draw.text((0, start_h+h_line), "Clients: ", 1, font_bold)
 mask_draw.text((max_width-w_clients, start_h+15), clients, 1, font)
 mask_draw.text((0, start_h+h_line*2), "Queries: ", 1, font_bold)
 mask_draw.text((max_width-w_queries, start_h+h_line*2), dns_queries, 1, font)
-#mask_draw.text((0, start_h+h_line*3), "Blocked: ", 1, font_bold)
-#mask_draw.text((max_width-w_blocked, start_h+h_line*3), blocked, 1, font)
+mask_draw.text((0, start_h+h_line*3), "Blocked: ", 1, font_bold)
+mask_draw.text((max_width-w_blocked, start_h+h_line*3), blocked, 1, font)
 
 
 graph_data = requests.get("http://" + pihole_ip + "/admin/api.php?overTimeData10min").json()
