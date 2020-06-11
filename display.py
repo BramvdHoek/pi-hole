@@ -1,14 +1,31 @@
-import subprocess, commands, requests
+import subprocess, commands, requests, json, collections, time
 from inky import InkyPHAT
 from PIL import Image, ImageFont, ImageDraw
+from datetime import datetime
 from font_source_sans_pro import SourceSansPro, SourceSansProBold
 
-#----------------------------- Settings change me -----------------------------#
+#--------------------------------- Functions ----------------------------------#
+def getTenMinuteData(pihole_ip):
+    # Get the data that is collected every 10 minute by the overTimeData10mins
 
+    # Get data from the pihole api, convert ordered json format
+    data_source = 'http://'+ pihole_ip +'/admin/api.php?overTimeData10mins'
+    rawdata = requests.get(data_source)
+    ordered_json = json.loads(rawdata.text, object_pairs_hook = collections.OrderedDict)
+
+    # for-loop into ordered_json, convert UNIX value to timestamp
+    # looking up 'domains_over_time', 'ads_over_time' is also available
+
+    for key, value in ordered_json['domains_over_time'].items():
+        key = float(key)
+        converted_key = datetime.fromtimestamp(key).strftime('%d-%m-%Y %H:%M')
+        #print("Time: " + converted_key + " Count: " + str(value))
+
+#----------------------------- Settings change me -----------------------------#
 #ipadress of the pihole server
 pihole_ip = "192.168.1.4"
 
-#------------------------------------------------------------------------------#
+#------------------------------ Start Main Code -------------------------------#
 inky_display = InkyPHAT(colour="black")
 inky_display.set_border(inky_display.WHITE)
 img = Image.new("P", (inky_display.WIDTH, inky_display.HEIGHT))
@@ -76,9 +93,7 @@ mask_draw.text((max_width-w_queries, start_h+h_line*2), dns_queries, 1, font)
 mask_draw.text((0, start_h+h_line*3), "Blocked: ", 1, font_bold)
 mask_draw.text((max_width-w_blocked, start_h+h_line*3), blocked, 1, font)
 
-
-graph_data = requests.get("http://" + pihole_ip + "/admin/api.php?overTimeData10min").json()
-#print("graph_data: ", graph_data)
+getTenMinuteData(pihole_ip)
 
 graph_start = start_h+h_line*4+2
 
