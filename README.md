@@ -13,5 +13,10 @@ it in multiple places in the code.
 
 Example:
 ```python
-pihole_ip = "192.168.0.1"
+#----------------------------- Settings change me -----------------------------#
+
+#ipadress of the pihole server
+pihole_ip = "192.168.1.4"
+
+#------------------------------------------------------------------------------#
 ```
