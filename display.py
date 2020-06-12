@@ -1,8 +1,31 @@
-import subprocess, commands, requests 
-from inky import InkyPHAT 
-from PIL import Image, ImageFont, ImageDraw 
+import subprocess, commands, requests, json, collections, time
+from inky import InkyPHAT
+from PIL import Image, ImageFont, ImageDraw
+from datetime import datetime
 from font_source_sans_pro import SourceSansPro, SourceSansProBold
 
+#--------------------------------- Functions ----------------------------------#
+def getTenMinuteData(pihole_ip):
+    # Get the data that is collected every 10 minute by the overTimeData10mins
+
+    # Get data from the pihole api, convert ordered json format
+    data_source = 'http://'+ pihole_ip +'/admin/api.php?overTimeData10mins'
+    rawdata = requests.get(data_source)
+    ordered_json = json.loads(rawdata.text, object_pairs_hook = collections.OrderedDict)
+
+    # for-loop into ordered_json, convert UNIX value to timestamp
+    # looking up 'domains_over_time', 'ads_over_time' is also available
+
+    for key, value in ordered_json['domains_over_time'].items():
+        key = float(key)
+        converted_key = datetime.fromtimestamp(key).strftime('%d-%m-%Y %H:%M')
+        #print("Time: " + converted_key + " Count: " + str(value))
+
+#----------------------------- Settings change me -----------------------------#
+#ipadress of the pihole server
+pihole_ip = "192.168.1.4"
+
+#------------------------------ Start Main Code -------------------------------#
 inky_display = InkyPHAT(colour="black")
 inky_display.set_border(inky_display.WHITE)
 img = Image.new("P", (inky_display.WIDTH, inky_display.HEIGHT))
@@ -22,7 +45,7 @@ host = subprocess.check_output("hostname", shell=True).strip() + ".local"
 ip = subprocess.check_output( "hostname -I | cut -d' ' -f1", shell=True).strip()
 mem_usage = subprocess.check_output("free -m | awk 'NR==2{printf \"%s/%sMB %.0f%%\", $3,$2,$3*100/$2 }'", shell=True).strip()
 disk = subprocess.check_output("df -h | awk '$NF==\"/\"{printf \"%d/%dGB %s\", $3,$2,$5}'", shell=True).strip()
-temp = commands.getstatusoutput("vcgencmd measure_temp")[1].replace("temp=", "").replace("'", "\xb0") 
+temp = commands.getstatusoutput("vcgencmd measure_temp")[1].replace("temp=", "").replace("'", "\xb0")
 
 # Dimensions of stats text
 w_host, h_host = font.getsize(host)
@@ -47,19 +70,13 @@ mask_draw.text((max_width-w_disk, h_line*3), disk, 1, font)
 mask_draw.text((0, h_line*4), "Temp: ", 1, font_bold)
 mask_draw.text((max_width-w_temp, h_line*4), temp, 1, font)
 mask_draw.line([(0, h_line*5+2), (max_width, h_line*5+2)], fill=color, width=2)
-#Pi-hole stats
 
-rawdata = requests.get("http://192.168.254.210/admin/api.php?summary").json()
+#Pi-hole stats
+rawdata = requests.get("http://" + pihole_ip + "/admin/api.php?summary").json()
 clients = rawdata["unique_clients"]
 dns_queries = rawdata["dns_queries_all_types"]
-queries_blocked = rawdata["ads_blocked_today"]
-print(percent_blocked, type(percent_blocked))
-percent_blocked = float(percent_blocked)
-percent_blocked = int(percent_blocked)
-print(percent_blocked, type(percent_blocked))
-blocked = queries_blocked + "  " + str(percent_blocked) + "%"
-#print("rawdata")
-#print(rawdata)
+ads_percentage = rawdata["ads_percentage_today"]
+blocked = ads_percentage + " %"
 
 stats_title = "Daily Pi-Hole Stats"
 w_title, h_title = font.getsize(stats_title)
@@ -76,9 +93,7 @@ mask_draw.text((max_width-w_queries, start_h+h_line*2), dns_queries, 1, font)
 mask_draw.text((0, start_h+h_line*3), "Blocked: ", 1, font_bold)
 mask_draw.text((max_width-w_blocked, start_h+h_line*3), blocked, 1, font)
 
-
-graph_data = requests.get("http://192.168.254.210/admin/api.php?overTimeData10min").json()
-print("graph_data: ", graph_data)
+getTenMinuteData(pihole_ip)
 
 graph_start = start_h+h_line*4+2
 
